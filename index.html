@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<meta charset="utf-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1" />
+	<title>X Across America — Driver's License “X” Marker Map</title>
+	<meta name="description"
+		content="Interactive map showing which U.S. states allow an 'X' gender marker on driver's licenses, with notes and sources." />
+	<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+		integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+	<link rel="stylesheet" href="style.css" />
+</head>
+
+<body>
+	<div class="app" role="application">
+		<header>
+			<h1>🗺️ X Across America — Driver's License “X” Marker</h1>
+			<div class="sub">A community-built map showing where U.S. states allow an <b>“X”</b> gender marker on
+				driver's licenses. Data from your supplied GeoJSON.</div>
+		</header>
+
+		<aside class="sidebar" aria-label="Controls and legend">
+			<section class="panel">
+				<div class="badge" id="updatedBadge">Updated: <span id="updatedDate">—</span></div>
+			</section>
+
+			<section class="panel">
+				<h2 style="margin:0 0 8px;font-size:14px">Legend</h2>
+				<div class="legend" aria-label="Status legend">
+					<div class="item"><span class="swatch" style="background:var(--status-allow)"></span> allows_X</div>
+					<div class="item"><span class="swatch" style="background:var(--status-no)"></span> no_X</div>
+					<div class="item"><span class="swatch" style="background:var(--status-unclear)"></span>
+						unclear_or_litigation</div>
+				</div>
+			</section>
+
+			<section class="panel controls" aria-label="Filters">
+				<h2 style="margin:0 0 8px;font-size:14px">Filter status</h2>
+				<label><input type="checkbox" checked data-status="allows_X" /> Show allows_X</label>
+				<label><input type="checkbox" checked data-status="no_X" /> Show no_X</label>
+				<label><input type="checkbox" checked data-status="unclear_or_litigation" /> Show
+					unclear_or_litigation</label>
+				<div style="margin-top:8px; display:flex; gap:8px; flex-wrap:wrap;">
+					<button class="btn" id="resetBtn" type="button">Reset View</button>
+					<button class="btn" id="downloadBtn" type="button">Download filtered GeoJSON</button>
+				</div>
+			</section>
+
+			<section class="panel">
+				<details class="table" open>
+					<summary style="cursor:pointer">Table view (screen-reader friendly)</summary>
+					<div style="max-height: 240px; overflow:auto; margin-top:8px;">
+						<table id="dataTable" aria-describedby="updatedBadge">
+							<thead>
+								<tr>
+									<th scope="col">State</th>
+									<th scope="col">Status</th>
+									<th scope="col">Allows X?</th>
+									<th scope="col">Notes</th>
+								</tr>
+							</thead>
+							<tbody></tbody>
+						</table>
+					</div>
+				</details>
+			</section>
+
+			<section class="foot">
+				<p>⚠️ Educational use only; not legal advice. Always verify with primary sources.</p>
+			</section>
+		</aside>
+
+		<main id="map" aria-label="Map of U.S. states"></main>
+	</div>
+
+	<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+		integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+	<script>
+		// === Configuration ===
+		const GEOJSON_URL = 'states.geojson';
+
+		const STATUS_COLORS = {
+			'allows_X': getComputedStyle(document.documentElement).getPropertyValue('--status-allow').trim(),
+			'no_X': getComputedStyle(document.documentElement).getPropertyValue('--status-no').trim(),
+			'unclear_or_litigation': getComputedStyle(document.documentElement).getPropertyValue('--status-unclear').trim()
+		};
+
+		const map = L.map('map', {
+			minZoom: 3,
+			maxZoom: 10,
+			zoomControl: true,
+			preferCanvas: true,
+		}).setView([37.8, -96], 4);
+
+		L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+			attribution: '&copy; OpenStreetMap contributors'
+		}).addTo(map);
+
+		let statesLayer; // Leaflet GeoJSON layer
+		let currentData; // raw GeoJSON for filtering & download
+
+		const checkedStatuses = new Set(['allows_X', 'no_X', 'unclear_or_litigation']);
+
+		function styleByStatus(feature) {
+			const status = feature.properties?.status || 'unclear_or_litigation';
+			const color = STATUS_COLORS[status] || STATUS_COLORS['unclear_or_litigation'];
+			return {
+				color: '#0a1016',
+				weight: 1,
+				fillColor: color,
+				fillOpacity: 0.75
+			};
+		}
+
+		function statusPill(status) {
+			const color = STATUS_COLORS[status] || STATUS_COLORS['unclear_or_litigation'];
+			return `<span class="pill" style="background:${color}22;border:1px solid ${color}55;color:${color}">${status || 'unknown'}</span>`;
+		}
+
+		function onEachFeature(feature, layer) {
+			const p = feature.properties || {};
+			const allowLabel = p.allow_x === true ? 'Yes' : (p.allow_x === false ? 'No' : 'Unclear');
+			const name = p.NAME || p.State_Name || p.State || p.NAME20 || p.name || 'Unknown';
+			const notes = (p.notes || '').toString().trim();
+			const src = p.x_source_url ? `<br/><a href="${p.x_source_url}" target="_blank" rel="noopener">Source</a>` : '';
+
+			layer.bindPopup(`
+        <div class="popup">
+          <h3>${name}</h3>
+          <div>${statusPill(p.status)}</div>
+          <div style="margin-top:6px"><b>Allows “X” on DL:</b> ${allowLabel}</div>
+          ${notes ? `<div style="margin-top:6px"><b>Notes:</b> ${escapeHtml(notes)}</div>` : ''}
+          ${src}
+        </div>
+      `);
+
+			layer.on({
+				mouseover: (e) => e.target.setStyle({ weight: 2, fillOpacity: 0.9 }),
+				mouseout: (e) => statesLayer.resetStyle(e.target),
+			});
+		}
+
+		function filterFeature(feature) {
+			const st = feature.properties?.status || 'unclear_or_litigation';
+			return checkedStatuses.has(st);
+		}
+
+		function renderLayers(data) {
+			if (statesLayer) { statesLayer.remove(); }
+			statesLayer = L.geoJSON(data, {
+				filter: filterFeature,
+				style: styleByStatus,
+				onEachFeature
+			}).addTo(map);
+
+			try { map.fitBounds(statesLayer.getBounds(), { padding: [12, 12] }); } catch (_) { }
+			buildTable(data);
+		}
+
+		function buildTable(data) {
+			const tbody = document.querySelector('#dataTable tbody');
+			tbody.innerHTML = '';
+			const feats = data.features || [];
+			for (const f of feats) {
+				const p = f.properties || {};
+				const st = p.status || 'unclear_or_litigation';
+				if (!checkedStatuses.has(st)) continue;
+				const allow = p.allow_x === true ? 'Yes' : (p.allow_x === false ? 'No' : 'Unclear');
+				const name = p.NAME || p.State_Name || p.State || p.NAME20 || p.name || 'Unknown';
+				const tr = document.createElement('tr');
+				tr.innerHTML = `<td>${escapeHtml(name)}</td><td>${escapeHtml(st)}</td><td>${allow}</td><td>${escapeHtml(p.notes || '')}</td>`;
+				tbody.appendChild(tr);
+			}
+		}
+
+		function updateDateBadge(data) {
+			const feats = data.features || [];
+			const dates = feats.map(f => (f.properties?.x_last_checked) || '').filter(Boolean);
+			const max = dates.sort().slice(-1)[0] || '—';
+			document.getElementById('updatedDate').textContent = max;
+		}
+
+		function escapeHtml(str) {
+			return String(str).replace(/[&<>"']/g, s => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', '\'': '&#39;' }[s]));
+		}
+
+		// Download filtered view as GeoJSON
+		function downloadFiltered() {
+			if (!currentData) return;
+			const filtered = { type: 'FeatureCollection', features: (currentData.features || []).filter(f => filterFeature(f)) };
+			const blob = new Blob([JSON.stringify(filtered)], { type: 'application/geo+json' });
+			const url = URL.createObjectURL(blob);
+			const a = document.createElement('a');
+			a.href = url; a.download = 'states_x_marker_filtered.geojson';
+			document.body.appendChild(a); a.click(); a.remove();
+			URL.revokeObjectURL(url);
+		}
+
+		// Controls wiring
+		document.getElementById('resetBtn').addEventListener('click', () => {
+			checkedStatuses.clear();
+			['allows_X', 'no_X', 'unclear_or_litigation'].forEach(s => checkedStatuses.add(s));
+			document.querySelectorAll('[data-status]').forEach(cb => cb.checked = true);
+			renderLayers(currentData);
+		});
+		document.getElementById('downloadBtn').addEventListener('click', downloadFiltered);
+
+		document.querySelectorAll('[data-status]').forEach(cb => {
+			cb.addEventListener('change', (e) => {
+				const s = e.target.getAttribute('data-status');
+				if (e.target.checked) checkedStatuses.add(s); else checkedStatuses.delete(s);
+				renderLayers(currentData);
+			});
+		});
+
+		// Load GeoJSON
+		fetch(GEOJSON_URL)
+			.then(r => { if (!r.ok) throw new Error('Failed to fetch GeoJSON'); return r.json(); })
+			.then(data => { currentData = data; updateDateBadge(data); renderLayers(data); })
+			.catch(err => {
+				console.error(err);
+				alert('Could not load GeoJSON. Make sure the file is next to this HTML and named:\n' + GEOJSON_URL);
+			});
+	</script>
+</body>
+
+</html>
