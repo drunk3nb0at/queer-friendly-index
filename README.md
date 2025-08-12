@@ -49,7 +49,6 @@ Primary data sources:
 ```bash
 # Clone the repo
 git clone https://github.com/yourusername/x-across-america.git
-cd x-across-america
 
 # Install dependencies
 npm install
