@@ -4,7 +4,7 @@
 <head>
 	<meta charset="utf-8" />
 	<meta name="viewport" content="width=device-width, initial-scale=1" />
-	<title>X Across America — Driver's License “X” Marker Map</title>
+	<title>Non Serviam: Driver's License “X” Marker Map</title>
 	<meta name="description"
 		content="Interactive map showing which U.S. states allow an 'X' gender marker on driver's licenses, with notes and sources." />
 	<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
@@ -13,12 +13,15 @@
 </head>
 
 <body>
+	<header class="header-float">
+		<div class="header-pill">
+			<h1>🗺️ Non Serviam: Driver's License “X” Marker Map</h1>
+			<div class="sub">A community-built map showing where U.S. states allow an <b>“X”</b> gender marker
+				on driver's
+				licenses.</div>
+		</div>
+	</header>
 	<div class="app" role="application">
-		<header>
-			<h1>🗺️ X Across America — Driver's License “X” Marker</h1>
-			<div class="sub">A community-built map showing where U.S. states allow an <b>“X”</b> gender marker on
-				driver's licenses. Data from your supplied GeoJSON.</div>
-		</header>
 
 		<aside class="sidebar" aria-label="Controls and legend">
 			<section class="panel">
@@ -26,31 +29,29 @@
 			</section>
 
 			<section class="panel">
-				<h2 style="margin:0 0 8px;font-size:14px">Legend</h2>
+				<h2 class="legend-title">Legend</h2>
 				<div class="legend" aria-label="Status legend">
-					<div class="item"><span class="swatch" style="background:var(--status-allow)"></span> allows_X</div>
-					<div class="item"><span class="swatch" style="background:var(--status-no)"></span> no_X</div>
-					<div class="item"><span class="swatch" style="background:var(--status-unclear)"></span>
-						unclear_or_litigation</div>
+					<div class="item"><span class="swatch swatch-allows-x"></span> allows_X</div>
+					<div class="item"><span class="swatch swatch-no-x"></span> no_X</div>
+					<div class="item"><span class="swatch swatch-unclear"></span> unclear_or_litigation</div>
 				</div>
 			</section>
 
 			<section class="panel controls" aria-label="Filters">
-				<h2 style="margin:0 0 8px;font-size:14px">Filter status</h2>
+				<h2 class="filter-title">Filter status</h2>
 				<label><input type="checkbox" checked data-status="allows_X" /> Show allows_X</label>
 				<label><input type="checkbox" checked data-status="no_X" /> Show no_X</label>
 				<label><input type="checkbox" checked data-status="unclear_or_litigation" /> Show
 					unclear_or_litigation</label>
-				<div style="margin-top:8px; display:flex; gap:8px; flex-wrap:wrap;">
+				<div class="filter-buttons">
 					<button class="btn" id="resetBtn" type="button">Reset View</button>
 					<button class="btn" id="downloadBtn" type="button">Download filtered GeoJSON</button>
 				</div>
 			</section>
-
 			<section class="panel">
 				<details class="table" open>
-					<summary style="cursor:pointer">Table view (screen-reader friendly)</summary>
-					<div style="max-height: 240px; overflow:auto; margin-top:8px;">
+					<summary class="table-summary">Table view</summary>
+					<div class="table-container">
 						<table id="dataTable" aria-describedby="updatedBadge">
 							<thead>
 								<tr>
@@ -67,7 +68,7 @@
 			</section>
 
 			<section class="foot">
-				<p>⚠️ Educational use only; not legal advice. Always verify with primary sources.</p>
+				<p>⚠️ Educational use only, not legal advice.</p>
 			</section>
 		</aside>
 
@@ -80,10 +81,14 @@
 		// === Configuration ===
 		const GEOJSON_URL = 'states.geojson';
 
+		function getCss(name) {
+			return getComputedStyle(document.documentElement).getPropertyValue(name)?.trim();
+		}
+
 		const STATUS_COLORS = {
-			'allows_X': getComputedStyle(document.documentElement).getPropertyValue('--status-allow').trim(),
-			'no_X': getComputedStyle(document.documentElement).getPropertyValue('--status-no').trim(),
-			'unclear_or_litigation': getComputedStyle(document.documentElement).getPropertyValue('--status-unclear').trim()
+			'allows_X': getCss('--color-allows-x') || getCss('--color-allows-x'),
+			'no_X': getCss('--color-no-x') || getCss('--color-no-x'),
+			'unclear_or_litigation': getCss('--color-unclear') || getCss('--color-unclear')
 		};
 
 		const map = L.map('map', {
@@ -91,11 +96,27 @@
 			maxZoom: 10,
 			zoomControl: true,
 			preferCanvas: true,
-		}).setView([37.8, -96], 4);
+		});
 
-		L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
-			attribution: '&copy; OpenStreetMap contributors'
+		const USA_BOUNDS = [
+			[24.396308, -125.0],
+			[49.384358, -66.93457]
+		];
+		map.fitBounds(USA_BOUNDS, { padding: [12, 12] });
+
+		// Carto Dark OSM basemap
+		// L.tileLayer('https://cartodb-basemaps-a.global.ssl.fastly.net/dark_all/{z}/{x}/{y}{r}.png', {
+		// 	attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://www.carto.com/">CARTO</a>',
+		// 	subdomains: 'abcd',
+		// 	maxZoom: 19,
+		// }).addTo(map);
+
+		L.tileLayer('https://cartodb-basemaps-a.global.ssl.fastly.net/light_all/{z}/{x}/{y}{r}.png', {
+			attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://www.carto.com/">CARTO</a>',
+			subdomains: 'abcd',
+			maxZoom: 19
 		}).addTo(map);
+
 
 		let statesLayer; // Leaflet GeoJSON layer
 		let currentData; // raw GeoJSON for filtering & download
@@ -129,8 +150,8 @@
         <div class="popup">
           <h3>${name}</h3>
           <div>${statusPill(p.status)}</div>
-          <div style="margin-top:6px"><b>Allows “X” on DL:</b> ${allowLabel}</div>
-          ${notes ? `<div style="margin-top:6px"><b>Notes:</b> ${escapeHtml(notes)}</div>` : ''}
+          <div ><b>Allows “X” on DL:</b> ${allowLabel}</div>
+          ${notes ? `<div ><b>Notes:</b> ${escapeHtml(notes)}</div>` : ''}
           ${src}
         </div>
       `);
@@ -154,7 +175,8 @@
 				onEachFeature
 			}).addTo(map);
 
-			try { map.fitBounds(statesLayer.getBounds(), { padding: [12, 12] }); } catch (_) { }
+			// Keep fixed USA view (do not auto-fit to data)
+			// try { map.fitBounds(statesLayer.getBounds(), { padding: [12, 12] }); } catch (_) {}
 			buildTable(data);
 		}
 
@@ -220,7 +242,7 @@
 			.then(data => { currentData = data; updateDateBadge(data); renderLayers(data); })
 			.catch(err => {
 				console.error(err);
-				alert('Could not load GeoJSON. Make sure the file is next to this HTML and named:\n' + GEOJSON_URL);
+				alert('Could not load GeoJSON. Make sure the file is next to this HTML and named:' + GEOJSON_URL);
 			});
 	</script>
 </body>
