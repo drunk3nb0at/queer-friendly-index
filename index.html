@@ -15,17 +15,17 @@
 <body>
 	<header class="header-float">
 		<div class="header-pill">
-			<h1>🗺️ Non Serviam: Driver's License “X” Marker Map</h1>
-			<div class="sub">A community-built map showing where U.S. states allow an <b>“X”</b> gender marker
-				on driver's
-				licenses.</div>
+			<h1>Non Serviam</h1>
+			<div class="sub">Non-Binary Driver's License “X” Marker Map</div>
 		</div>
 	</header>
 	<div class="app" role="application">
 
 		<aside class="sidebar" aria-label="Controls and legend">
 			<section class="panel">
-				<div class="badge" id="updatedBadge">Updated: <span id="updatedDate">—</span></div>
+				<h2 class="title">Description</h2>
+				<p>This map shows which U.S. states allow an <b>“X”</b> gender marker
+					on driver's licenses.</p>
 			</section>
 
 			<section class="panel">
@@ -67,12 +67,20 @@
 				</details>
 			</section>
 
+			</section>
+			<section class="panel">
+				<div class="badge" id="updatedBadge">Updated: <span id="updatedDate">—</span></div>
+			</section>
+
+
 			<section class="foot">
 				<p>⚠️ Educational use only, not legal advice.</p>
 			</section>
 		</aside>
 
-		<main id="map" aria-label="Map of U.S. states"></main>
+		<main id="map" aria-label="Map of U.S. states">
+			<div class="basemap-tint"></div>
+		</main>
 	</div>
 
 	<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
@@ -98,24 +106,33 @@
 			preferCanvas: true,
 		});
 
+		map.setView([33.7490, -84.3880], 5);
+
 		const USA_BOUNDS = [
 			[24.396308, -125.0],
 			[49.384358, -66.93457]
 		];
-		map.fitBounds(USA_BOUNDS, { padding: [12, 12] });
+		map.setMaxBounds(USA_BOUNDS);
 
-		// Carto Dark OSM basemap
-		// L.tileLayer('https://cartodb-basemaps-a.global.ssl.fastly.net/dark_all/{z}/{x}/{y}{r}.png', {
-		// 	attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://www.carto.com/">CARTO</a>',
-		// 	subdomains: 'abcd',
-		// 	maxZoom: 19,
-		// }).addTo(map);
+		// const USA_BOUNDS = [
+		// 	[24.396308, -125.0],
+		// 	[49.384358, -66.93457]
+		// ];
+		// map.fitBounds(USA_BOUNDS, { padding: [12, 12] });
 
-		L.tileLayer('https://cartodb-basemaps-a.global.ssl.fastly.net/light_all/{z}/{x}/{y}{r}.png', {
-			attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://www.carto.com/">CARTO</a>',
-			subdomains: 'abcd',
-			maxZoom: 19
-		}).addTo(map);
+		L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}', {
+			attribution: 'Tiles &copy; Esri &mdash; Esri, DeLorme, NAVTEQ, TomTom, Intermap, iPC, USGS, FAO, NPS, NRCAN, GeoBase, Kadaster NL, Ordnance Survey, Esri Japan, METI, Esri China (Hong Kong), and the GIS User Community'
+		})
+			.setOpacity(0.7)
+			.addTo(map);
+
+		L.control.scale({
+			position: 'bottomright', // 'topleft', 'topright', 'bottomleft', 'bottomright'
+			imperial: false, // Show imperial units (miles, feet)
+			metric: true // Show metric units (kilometers, meters)
+		}
+
+		).addTo(map);
 
 
 		let statesLayer; // Leaflet GeoJSON layer
@@ -127,10 +144,11 @@
 			const status = feature.properties?.status || 'unclear_or_litigation';
 			const color = STATUS_COLORS[status] || STATUS_COLORS['unclear_or_litigation'];
 			return {
-				color: '#0a1016',
+				color: color,
+				opacity: 0.8,
 				weight: 1,
 				fillColor: color,
-				fillOpacity: 0.75
+				fillOpacity: 0.6
 			};
 		}
 
@@ -144,7 +162,6 @@
 			const allowLabel = p.allow_x === true ? 'Yes' : (p.allow_x === false ? 'No' : 'Unclear');
 			const name = p.NAME || p.State_Name || p.State || p.NAME20 || p.name || 'Unknown';
 			const notes = (p.notes || '').toString().trim();
-			const src = p.x_source_url ? `<br/><a href="${p.x_source_url}" target="_blank" rel="noopener">Source</a>` : '';
 
 			layer.bindPopup(`
         <div class="popup">
@@ -152,7 +169,6 @@
           <div>${statusPill(p.status)}</div>
           <div ><b>Allows “X” on DL:</b> ${allowLabel}</div>
           ${notes ? `<div ><b>Notes:</b> ${escapeHtml(notes)}</div>` : ''}
-          ${src}
         </div>
       `);
 
@@ -175,8 +191,6 @@
 				onEachFeature
 			}).addTo(map);
 
-			// Keep fixed USA view (do not auto-fit to data)
-			// try { map.fitBounds(statesLayer.getBounds(), { padding: [12, 12] }); } catch (_) {}
 			buildTable(data);
 		}
 

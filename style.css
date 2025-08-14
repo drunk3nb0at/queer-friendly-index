@@ -5,9 +5,15 @@
 	--color-text-muted: #8b949e;
 	--color-border: #30363d;
 
-	--color-allows-x: #3ddc97;
-	--color-no-x: #dc3d4d;
+	/* --color-allows-x: #3ddc97; */
+	--color-allows-x: #6a3cbc;
+	--color-no-x: #f78f1e;
 	--color-unclear: #5da0dc;
+
+	--first-color: #461b93;
+	--second-color: #6a3cbc;
+	--third-color: #8253d7;
+	--fourth-color: #f78f1e;
 
 	--space-xs: 0.25rem;
 	--space-sm: 0.5rem;
@@ -16,66 +22,96 @@
 	--radius: 0.5rem;
 }
 
+
+html,
+body {
+	height: 100%;
+}
+
+body {
+	margin: 0;
+}
+
+.app {
+	height: 100vh;
+}
+
+#map {
+	height: 100%;
+}
+
+
+.basemap-tint {
+	position: absolute;
+	inset: 0;
+	pointer-events: none;
+	background: var(--first-color);
+	mix-blend-mode: screen;
+	/* opacity: 0.55; */
+}
+
 body {
 	margin: 0;
 	font-family: system-ui, sans-serif;
-	background-color: var(--color-bg);
 	color: var(--color-text);
+	gap: var(--space-md);
 }
 
 .header-float {
-	grid-column: 2 / 3;
-	position: sticky;
-	top: 0.5rem;
+	position: fixed;
+	top: 0.75rem;
+	left: 50%;
+	transform: translateX(-50%);
 	z-index: 1200;
-	display: flex;
-	justify-content: center;
 	pointer-events: none;
 }
 
 .header-pill {
 	pointer-events: auto;
-	background: color-mix(in srgb, var(--color-bg) 60%, transparent);
-	backdrop-filter: blur(6px);
-	-webkit-backdrop-filter: blur(6px);
-	/* border: 0.0625rem solid var(--color-border); */
-	border-radius: 0.75rem;
+	display: inline-block;
+	max-width: min(56rem, 92vw);
 	padding: 0.5rem 0.875rem;
-	max-width: min(48rem, 90vw);
-	box-shadow: 0 0.25rem 1rem rgba(0, 0, 0, .35);
-	text-align: center;
+	/* text-align: center; */
+	color: var(--color-panel-bg);
+
 }
 
 .header-pill h1 {
+	font-family: 'Ranade', sans-serif;
+	font-weight: 600;
 	margin: 0;
-	font-size: 1.375rem;
+	font-size: 2rem;
 	line-height: 1.2;
-	color: var(--color-text);
 }
 
 .header-pill .sub {
-	margin-top: 0.25rem;
-	font-size: 0.875rem;
-	color: var(--color-text-muted);
+	/* margin-top: 0.3rem; */
+	font-size: 1.25rem;
+	font-weight: 400;
+	color: var(--color-panel-bg);
+	font-family: 'Ranade', sans-serif;
 }
 
-/* Give the map controls breathing room under the floating header */
 .leaflet-top.leaflet-left {
 	margin-top: 3.25rem;
 }
 
-/* On small screens, tighten things up */
+.leaflet-top.leaflet-right {
+	margin-top: 3.25rem;
+}
+
 @media (max-width: 48rem) {
 	.header-pill {
 		padding: 0.5rem 0.75rem;
 	}
 
 	.header-pill h1 {
-		font-size: 1.1rem;
+		font-size: 1.05rem;
 	}
 
-	.leaflet-top.leaflet-left {
-		margin-top: 2.75rem;
+	.leaflet-top.leaflet-left,
+	.leaflet-top.leaflet-right {
+		margin-top: 2.5rem;
 	}
 }
 
@@ -115,14 +151,13 @@ body {
 .legend {
 	display: flex;
 	flex-direction: column;
-	gap: var(--space-xs);
+	gap: var(--space-sm);
 }
 
 .legend .item {
 	display: flex;
 	align-items: center;
 	gap: var(--space-sm);
-	font-size: 0.9rem;
 }
 
 .swatch {
@@ -146,12 +181,12 @@ body {
 
 .controls label {
 	display: block;
-	margin: var(--space-xs) 0;
+	margin: var(--space-sm) 0;
 }
 
 .btn {
-	background-color: var(--color-allows-x);
-	color: #000;
+	background-color: var(--fourth-color);
+	color: var(--color-bg);
 	border: none;
 	padding: var(--space-sm) var(--space-md);
 	border-radius: var(--radius);
