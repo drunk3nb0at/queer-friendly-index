@@ -9,7 +9,7 @@ Research where I will go next, utilizing quantitative methods.
 [LGBTQ Equality by State](https://www.lgbtmap.org/equality-maps)
 
 
-# X Across America
+# Non Serviam: Non Binary Gender Marker ID Map
 
 A public, open-source map visualizing which U.S. states allow an **"X" gender marker** on driver's licenses.  
 Built by and for the non-binary community to track legal recognition and policy changes over time.
@@ -28,27 +28,26 @@ Built by and for the non-binary community to track legal recognition and policy 
 ## 📊 Data
 All state data lives in [`data/dl_x_status.csv`](data/dl_x_status.csv) with the following columns:
 
-| state | code | status | basis | effective_date | last_checked | source_url | notes |
-|-------|------|--------|-------|----------------|--------------|------------|-------|
+| state | code | status |last_checked |notes  |
+|-------|------|--------|------------ |-------|
 
-Primary data sources:
-- [Movement Advancement Project – Identity Documents](https://www.lgbtmap.org/equality-maps/identity_document_laws)
-- [A4TE ID Documents Center](https://id-documents-center.a4te.org/)
-- State DMV or legislative websites
-- ACLU and local legal advocacy organizations for recent policy changes
+Data sources: 
+- [Legal recognition of non-binary gender](https://en.wikipedia.org/wiki/Legal_recognition_of_non-binary_gender)
+- [US State Boundaries](https://hub.arcgis.com/datasets/TrainingServices::us-state-boundaries/about)
+
 
 **Disclaimer**: This project is for public education only and is **not legal advice**.  
 
 ## 🛠️ Tech Stack
 - [Next.js](https://nextjs.org/) + [TypeScript](https://www.typescriptlang.org/)
 - [MapLibre GL JS](https://maplibre.org/) for mapping
-- [Vercel](https://vercel.com/) for hosting
+- [Cloudflare Page]([https://vercel.com/](https://pages.cloudflare.com/)for hosting
 - CSV data joined with US States GeoJSON
 
 ## 🚀 Getting Started
 ```bash
 # Clone the repo
-git clone https://github.com/yourusername/x-across-america.git
+git clone https://github.com/drunk3nb0at/queer-friendly-index.git
 
 # Install dependencies
 npm install
