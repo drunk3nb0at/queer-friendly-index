@@ -1,6 +1,8 @@
 :root {
 	--color-bg: #0d1117;
-	--color-panel-bg: #161b22;
+	/* --color-panel-bg: #161b22; */
+	--color-panel-bg: #0d1117;
+	/* --color-panel-bg: #3D065F; */
 	--color-text: #e6edf3;
 	--color-text-muted: #8b949e;
 	--color-border: #30363d;
@@ -34,12 +36,21 @@ body {
 
 .app {
 	height: 100vh;
+	display: grid;
+	grid-template-columns: 20rem 1fr;
 }
 
 #map {
 	height: 100%;
+	flex: 1;
 }
 
+/* add styles for h3 */
+h3 {
+	margin: 0.5rem 0;
+	color: var(--color-panel-bg);
+
+}
 
 .basemap-tint {
 	position: absolute;
@@ -79,16 +90,18 @@ body {
 .header-pill h1 {
 	font-family: 'Ranade', sans-serif;
 	font-weight: 600;
+	color: var(--first-color);
 	margin: 0;
 	font-size: 2rem;
 	line-height: 1.2;
+
 }
 
 .header-pill .sub {
 	/* margin-top: 0.3rem; */
 	font-size: 1.25rem;
-	font-weight: 400;
-	color: var(--color-panel-bg);
+	font-weight: 600;
+	color: var(--first-color);
 	font-family: 'Ranade', sans-serif;
 }
 
@@ -128,6 +141,7 @@ body {
 	display: flex;
 	flex-direction: column;
 	padding: var(--space-md);
+	transition: width .2s ease, padding .2s ease, border-color .2s ease;
 }
 
 .panel {
@@ -232,6 +246,84 @@ th {
 	color: var(--color-text-muted);
 }
 
-#map {
-	flex: 1;
+.pill {
+	display: inline-block;
+	padding: 0.25rem 0.5rem;
+	border-radius: 0.25rem;
+	margin-right: 0.25rem;
+	margin-bottom: 0.25rem;
+}
+
+.popup {
+	line-height: 1.5;
+}
+
+/* .burger {
+	display: none;
+} */
+.burger {
+	display: none;
+	align-items: center;
+	justify-content: center;
+	font: inherit;
+	line-height: 1;
+	padding: 0.25rem 0.5rem;
+	border-radius: 0.5rem;
+	border: 0.0625rem solid var(--color-border, #30363d);
+	background: transparent;
+	color: var(--color-text, #e6edf3);
+	z-index: 1400;
+	/* above map/tiles */
+}
+
+
+.header-row {
+	display: flex;
+	align-items: center;
+	gap: 0.5rem;
+}
+
+.header-row h1 {
+	margin: 0;
+}
+
+/* === Mobile rules (< 900px) === */
+@media (max-width: 56.25rem) {
+
+	/* 900px */
+	/* Mobile default: sidebar collapsed */
+	.app {
+		grid-template-columns: 0 1fr;
+	}
+
+	.sidebar {
+		width: 0;
+		padding: 0;
+		border: none;
+		overflow: hidden;
+	}
+
+	/* When user opens it, show a compact width (tweak as you like) */
+	body.sidebar-open .app {
+		grid-template-columns: 16rem 1fr;
+	}
+
+	body.sidebar-open .sidebar {
+		width: auto;
+		padding: var(--space-md, 1rem);
+		border: 0.0625rem solid var(--color-border, #30363d);
+	}
+
+	/* Show the burger on mobile */
+	.burger {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+	}
+
+	/* Nudge Leaflet controls a bit if needed when header overlaps */
+	.leaflet-top.leaflet-left,
+	.leaflet-top.leaflet-right {
+		margin-top: 3rem;
+	}
 }
