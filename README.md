@@ -53,6 +53,7 @@ npm install
 
 # Run locally
 npm run dev
+```
 
 ## Read More
 
