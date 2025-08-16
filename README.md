@@ -16,7 +16,7 @@ Built by and for the non-binary community to track legal recognition and policy 
 
 ## ✨ Features
 - **Interactive Map** – Hover for quick status; click a state for details.
-- **Four Clear Statuses**:
+- **Four Statuses**:
   - `allows_X` – "X" marker available by policy or law
   - `no_X` – Only "M" and "F" available
   - `halted_or_banned` – Policy currently blocks updates
@@ -26,7 +26,6 @@ Built by and for the non-binary community to track legal recognition and policy 
 - **Source Transparency** – Every entry links to authoritative sources and includes a "last checked" date.
 
 ## 📊 Data
-All state data lives in [`data/dl_x_status.csv`](data/dl_x_status.csv) with the following columns:
 
 | state | code | status |last_checked |notes  |
 |-------|------|--------|------------ |-------|
